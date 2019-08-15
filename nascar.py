@@ -23,7 +23,7 @@ SCREEN_HEIGHT = 800
 SCREEN_TITLE = "Move Sprite with Keyboard Example"
 
 PIXEL_LENGTH = 0.025
-CAR_SPEED_KPH = 200
+CAR_SPEED_KPH = 320
 CAR_SPEED_MPS = CAR_SPEED_KPH/3.6
 
 MOVEMENT_SPEED = CAR_SPEED_MPS/PIXEL_LENGTH
@@ -70,7 +70,7 @@ class MyGame(arcade.Window):
 
         self.car_names = ["images/Nascar_Nr_2.png", "images/Nascar_Nr_20.png", "images/Nascar_Nr_9.png", "images/Nascar_Nr_49.png"] 
 
-        self.zoom = 1.2
+        self.zoom = 1.7
         self.camera_x = 0
         self.camera_y = 0
 
@@ -82,8 +82,10 @@ class MyGame(arcade.Window):
         self.car_list = None
         # List that holds road pieces
         self.road_list = None
+        # List that holds grass pieces
+        self.grass_list = None
         # Set the background color
-        arcade.set_background_color(arcade.color.GRAY)
+        arcade.set_background_color(arcade.color.DIM_GRAY)
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -92,6 +94,7 @@ class MyGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.car_list = arcade.SpriteList()
         self.road_list = arcade.SpriteList()
+        self.grass_list = arcade.SpriteList()
 
         # Set up the player
         self.player_sprite = Player("images/Nascar_Nr_20.png", SPRITE_SCALING)
@@ -106,12 +109,25 @@ class MyGame(arcade.Window):
             car.center_y = y*230 + 100
             self.car_list.append(car)					
 
+        for y in range(4):
+            car = arcade.Sprite(self.car_names[y], SPRITE_SCALING)
+            car.center_x = SCREEN_WIDTH/2
+            car.center_y = y*230 + 40*250
+            self.car_list.append(car)					
+
         # Set up the road pieces
-        for y in range(20):
+        for y in range(100):
             road = arcade.Sprite("images/Tileable_Asphalt_Texture.png", SPRITE_SCALING)
             road.center_x = SCREEN_WIDTH/2
             road.center_y = y*400
             self.road_list.append(road)					
+
+        # Set up the grass pieces
+        for y in range(100):
+            grass = arcade.Sprite("images/grass.png", SPRITE_SCALING)
+            grass.center_x = SCREEN_WIDTH/2-400
+            grass.center_y = y*400
+            self.grass_list.append(grass)					
 
     def on_draw(self):
         """
@@ -129,18 +145,19 @@ class MyGame(arcade.Window):
         arcade.set_viewport(left, right, bottom, top)
 
         # Draw all the sprites.
+        self.grass_list.draw()
         self.road_list.draw()
         self.player_list.draw()
         self.car_list.draw()
 
         arcade.set_viewport(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT)
 
-        arcade.draw_text("{} mph".format(int(CAR_SPEED_KPH*1.6)), 50, 50, arcade.color.WHITE, 32)
-        
+        arcade.draw_text("{} mph".format(int(CAR_SPEED_KPH/1.6)), 50, 50, arcade.color.WHITE, 32)
+        arcade.draw_text("{} zoom".format(self.zoom), 50, 150, arcade.color.WHITE, 32)
 
     def update(self, delta_time):
         """ Movement and game logic """
-
+#        self.zoom += delta_time*0.1
         self.player_sprite.center_x += self.player_sprite.change_x*delta_time
         self.player_sprite.center_y += self.player_sprite.change_y*delta_time
 
