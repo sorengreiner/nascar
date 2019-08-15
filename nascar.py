@@ -22,7 +22,13 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
 SCREEN_TITLE = "Move Sprite with Keyboard Example"
 
-MOVEMENT_SPEED = 200
+PIXEL_LENGTH = 0.025
+CAR_SPEED_KPH = 200
+CAR_SPEED_MPS = CAR_SPEED_KPH/3.6
+
+MOVEMENT_SPEED = CAR_SPEED_MPS/PIXEL_LENGTH
+MOVEMENT_SPEED_SIDE = 8/PIXEL_LENGTH
+
 
 
 class Player(arcade.Sprite):
@@ -36,10 +42,10 @@ class Player(arcade.Sprite):
         elif self.right > bounds_right:
             self.right = bounds_right
 
-        if self.bottom < 0:
-            self.bottom = 0
-        elif self.top > SCREEN_HEIGHT - 1:
-            self.top = SCREEN_HEIGHT - 1
+#        if self.bottom < 0:
+#            self.bottom = 0
+#        elif self.top > SCREEN_HEIGHT - 1:
+#            self.top = SCREEN_HEIGHT - 1
 
 
 class MyGame(arcade.Window):
@@ -64,6 +70,10 @@ class MyGame(arcade.Window):
 
         self.car_names = ["images/Nascar_Nr_2.png", "images/Nascar_Nr_20.png", "images/Nascar_Nr_9.png", "images/Nascar_Nr_49.png"] 
 
+        self.zoom = 1.2
+        self.camera_x = 0
+        self.camera_y = 0
+
         # Variables that will hold sprite lists
         self.player_list = None
         # Set up the player info
@@ -85,8 +95,8 @@ class MyGame(arcade.Window):
 
         # Set up the player
         self.player_sprite = Player("images/Nascar_Nr_20.png", SPRITE_SCALING)
-        self.player_sprite.center_x = 450
-        self.player_sprite.center_y = 50
+        self.player_sprite.center_x = 350
+        self.player_sprite.center_y = 250
         self.player_list.append(self.player_sprite)
           
         # Set up the other cars
@@ -97,10 +107,10 @@ class MyGame(arcade.Window):
             self.car_list.append(car)					
 
         # Set up the road pieces
-        for y in range(0, 2000, 400):
+        for y in range(20):
             road = arcade.Sprite("images/Tileable_Asphalt_Texture.png", SPRITE_SCALING)
             road.center_x = SCREEN_WIDTH/2
-            road.center_y = y
+            road.center_y = y*400
             self.road_list.append(road)					
 
     def on_draw(self):
@@ -111,11 +121,21 @@ class MyGame(arcade.Window):
         # This command has to happen before we start drawing
         arcade.start_render()
 
+        left = self.zoom*(self.camera_x - SCREEN_WIDTH/2)
+        right = self.zoom*(self.camera_x - SCREEN_WIDTH/2 + SCREEN_WIDTH)
+        bottom = self.zoom*(self.camera_y - SCREEN_HEIGHT/2)
+        top = self.zoom*(self.camera_y - SCREEN_HEIGHT/2 + SCREEN_HEIGHT)
+
+        arcade.set_viewport(left, right, bottom, top)
+
         # Draw all the sprites.
         self.road_list.draw()
         self.player_list.draw()
         self.car_list.draw()
-        arcade.draw_text("0 mph", 50, 50, arcade.color.WHITE, 32)
+
+        arcade.set_viewport(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT)
+
+        arcade.draw_text("{} mph".format(int(CAR_SPEED_KPH*1.6)), 50, 50, arcade.color.WHITE, 32)
         
 
     def update(self, delta_time):
@@ -123,6 +143,10 @@ class MyGame(arcade.Window):
 
         self.player_sprite.center_x += self.player_sprite.change_x*delta_time
         self.player_sprite.center_y += self.player_sprite.change_y*delta_time
+
+        # Let the camera follow the car center
+        self.camera_x = self.player_sprite.center_x/self.zoom
+        self.camera_y = self.player_sprite.center_y/self.zoom
 
         # Call update on all sprites (The sprites don't do much in this
         # example though.)
@@ -136,9 +160,9 @@ class MyGame(arcade.Window):
         elif key == arcade.key.DOWN:
             self.player_sprite.change_y = -MOVEMENT_SPEED
         elif key == arcade.key.LEFT:
-            self.player_sprite.change_x = -MOVEMENT_SPEED
+            self.player_sprite.change_x = -MOVEMENT_SPEED_SIDE
         elif key == arcade.key.RIGHT:
-            self.player_sprite.change_x = MOVEMENT_SPEED
+            self.player_sprite.change_x = MOVEMENT_SPEED_SIDE
 
     def on_key_release(self, key, modifiers):
         """Called when the user releases a key. """
